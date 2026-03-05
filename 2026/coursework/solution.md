@@ -71,9 +71,25 @@ In MQ2, the probability can be calculated from two different way: 1 is to use th
 ### Q2.3
 ## Question 3
 ### Q3.1
+In line 72 of file main.py /finetuning, the line is to use the function Datasets.train_test_split () to split the training set and the testing set. The argument test_size was set to 0.9, which means that 90% of the dataset will be used for testing and only 10% will be used for training. This will cause the models in the experiment to underperform due to a small sample size and a large amount of unseen data in the testing set.
+
 ### Q3.2
+| Run |  Qwen2.5-0.5B (Base) | Qwen2.5-0.5B-Instruct |
+| --- | -------------------- | ---------------------|
+| 1   | 13.00% Valid: 13.13%; Invalid: 1.00% | 13.00% Valid: 13.00%; Invalid: 0.00% |
+| 2   | 13.00% Valid: 13.13%; Invalid: 1.00% | 13.00% Valid: 13.00%; Invalid: 0.00% |
+| 3   | 13.00% Valid: 13.13%; Invalid: 1.00% | 13.00% Valid: 13.00%; Invalid: 0.00% |
+| Mean| 13.00% | 13.00% |
 ### Q3.3
+<|im_start|>system\nThink step by step before answering the question, and provide the final answer as 'the answer is [answer]' format.<|im_end|>\n<|im_start|>user\nBlanch has 15 slices of pizza in the fridge. During breakfast, she eats 4 slices. At lunch, Blanch eats 2 slices, then takes two slices as a snack. Finally, she consumes 5 slices for dinner. How many slices of pizza are left?<|im_end|>\n<|im_start|>assistant\nDuring breakfast, Blanch has 15 - 4 = <<15-4=11>>11 slices left.\nAt lunch, she still has 11 - 2 = <<11-2=9>>9 slices left.\nAfter the snack, there are still 9 - 2 = <<9-2=7>>7 slices left.\nFinally after dinner, Blanch has 7 - 5 = <<7-5=2>>2 slices left.\n\nThe answer is 2<|im_end|>\n<|im_end|>
 ### Q3.4
+| Run |  Qwen2.5-0.5B-sft | Qwen2.5-0.5B-Instruct-sft |
+| --- | -------------------- | ---------------------|
+| 1   | 29.00% Valid: 29.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
+| 2   | 31.00% Valid: 31.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
+| 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 32.00% Valid: 32.00%; Invalid: 0.00%|
+| Mean| 31.00% | 33.00% |
+
 ### Q3.5
 ## Question 4
 ### Q4.1
