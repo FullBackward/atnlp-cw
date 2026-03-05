@@ -12,7 +12,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 ################################################################################################################
 ###Question 1: Create a .env file with the api keys with the input OPENAI_API_KEY= before executing the code###
 ################################################################################################################
-raise NotImplementedError("Create a .env file with the api keys with the input OPENAI_API_KEY= before executing the code")
+
 client = openai.OpenAI()
 
 def predict_gpt(openai_m, messages):
