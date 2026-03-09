@@ -61,7 +61,15 @@
 - MQ2\
     Statement d is true.
 ### Q1.4
-Mechanically, in these two questions, the structure is clear that all formulas have no embedded figures. It can help to solve more complex problems that have more variables and constants more easily. It turned each sentence into an equation made the solution a straightforward “substitute and compute” procedure. However, a misinterpretation of the question can end up with a wrong answer or a dead end. 
+involved are not stated explicitly. Important relationships and quantities are embedded in natural language, which makes it easy to overlook key pieces of information or misinterpret how elements of the problem relate to one another. As a result, a solver may quickly jump to an incorrect interpretation and arrive at a wrong answer even when the underlying mathematics is simple.
+
+The structured reasoning steps used in the formalisation process helped reduce this issue. By first identifying and extracting the relevant entities and facts from the question, the process forces the solver to isolate the important information and remove unnecessary wording or contextual clutter. Translating the problem into a more explicit and structured mathematical representation then makes the relationships between variables clearer and allows the problem to be approached more mechanically. Once the relationships are written formally, deriving the final answer becomes a more straightforward step of applying logical or mathematical operations rather than interpreting language.
+
+Another advantage of this approach is that it reduces the risk of falling for misleading wording. Word problems sometimes include phrasing that encourages an intuitive but incorrect interpretation. Breaking the question down into explicit components helps prevent this by ensuring that each piece of information is carefully analysed before it is used in the reasoning process.
+
+However, the structured approach also has limitations. The formalisation process can be time-consuming, especially for relatively simple problems where an experienced solver might arrive at the correct answer more quickly through intuition. Additionally, if the initial identification or representation of facts is incorrect, the structured process may simply formalise the mistake rather than correct it. In this sense, the approach improves clarity but does not guarantee correctness.
+
+Overall, the structured reasoning steps helped make the reasoning process more systematic and less dependent on intuition. While the approach may add extra steps and time to the process, it provides a clearer framework for understanding the problem and reduces the likelihood of misinterpreting the information given.
 ### Q1.5
 **This question I am not quite sure, it seems to me in practical that how the intermediate steps are produced is more important**\
 In MQ2, the probability can be calculated from two different way: 1 is to use the Bayes rule like stated in Q1.2; 2 is to use a simple counting approach to calculae: $P(D|Y) = \frac{D_Y}{D_Y + D_X}$. The complexity of these two approaches differences allot.  
