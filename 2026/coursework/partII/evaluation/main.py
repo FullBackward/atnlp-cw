@@ -71,6 +71,7 @@ def main():
             f.write(f"Evaluating model {args.model_signature} with SFT from {args.sft_adapter_path} and GRPO from {args.grpo_adapter_path}.\n")
         
         base_id = args.model_signature
+        print(base_id)
         tokenizer = AutoTokenizer.from_pretrained(base_id)
         
         # 1. Load Base Model

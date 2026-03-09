@@ -94,6 +94,12 @@ In line 72 of file main.py /finetuning, the line is to use the function Datasets
 ## Question 4
 ### Q4.1
 ### Q4.2
+| Run | Overall Acc | Valid Acc | Invalid Acc |
+| --- | ------ | ----- | ----- |
+| 1   | 28.00% | 28.00% | 0.00% |
+| 2   | 31.00% Valid: 31.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
+| 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 32.00% Valid: 32.00%; Invalid: 0.00%|
+| Mean| 31.00% | 33.00% |
 ### Q4.3
 ## Question 5
 ### Q5.1
