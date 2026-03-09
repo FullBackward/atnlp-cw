@@ -5,6 +5,11 @@ import torch
 from torch.nn import DataParallel
 from dotenv import load_dotenv
 import os
+import logging
+
+logger= logging.getLogger(__name__)
+
+
 
 load_dotenv()
 
@@ -19,7 +24,6 @@ def predict_gpt(openai_m, messages):
     ######################################
     ###Question 2: INSERT THE CODE HERE###
     ######################################
-    raise NotImplementedError("Build the OpenAI function here based on the configurations given in the assignment")
     """
     This function, `predict_gpt`, is designed to interact with OpenAI's GPT model to generate predictions 
     based on a conversation history. 
@@ -36,12 +40,23 @@ def predict_gpt(openai_m, messages):
     Returns:
         The model's response as a string.
     """
+    logger.debug("predict_gpt called with %d messages", len(messages))
+    logger.debug("Using model=%s temperature=%s", "gpt-4o-mini", 0)
+    logger.info("Sending request to OpenAI")
 
+    response = openai_m.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        temperature=0,
+        max_tokens=2000
+    )
+    text_response = response.choices[0].message.content
+    logger.info("Received response from OpenAI")
+    logger.debug("Response object: %s", response)
+    logger.debug("Response text: %s", text_response)
 
-    ## In the final step, you can use client.chat.completions.create(...., model="gpt-4o-mini", ....) to create the model (complete)
-    ## As mentioned above, make sure you use *only* gpt-4o-mini with your OpenAI key!
+    return text_response
 
-    return 
 
 def model_evaluation(model_type, model, tokenizer, system_content, question, formatted_options, device=None):
     if model_type == "gpt":

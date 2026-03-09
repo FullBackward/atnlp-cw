@@ -70,13 +70,27 @@ Another advantage of this approach is that it reduces the risk of falling for mi
 However, the structured approach also has limitations. The formalisation process can be time-consuming, especially for relatively simple problems where an experienced solver might arrive at the correct answer more quickly through intuition. Additionally, if the initial identification or representation of facts is incorrect, the structured process may simply formalise the mistake rather than correct it. In this sense, the approach improves clarity but does not guarantee correctness.
 
 Overall, the structured reasoning steps helped make the reasoning process more systematic and less dependent on intuition. While the approach may add extra steps and time to the process, it provides a clearer framework for understanding the problem and reduces the likelihood of misinterpreting the information given.
-### Q1.5
+### Q1.5 **WIP**
 **This question I am not quite sure, it seems to me in practical that how the intermediate steps are produced is more important**\
-In MQ2, the probability can be calculated from two different way: 1 is to use the Bayes rule like stated in Q1.2; 2 is to use a simple counting approach to calculae: $P(D|Y) = \frac{D_Y}{D_Y + D_X}$. The complexity of these two approaches differences allot.  
+In MQ2, the probability can be calculated from two different way: 1 is to use the Bayes rule like stated in Q1.2; 2 is to use a simple counting approach to calculate: $P(D|Y) = \frac{D_Y}{D_Y + D_X}$. The complexity of these two approaches differs allot.  
 ## Question 2
-### Q2.1
 ### Q2.2
+#### a) Running the eval with temperature 0.0 gave accuracy:  77.78%
+#### b) Running the eval with temperature 0.7 gave accuracy: 72.73%
+#### c) Increasing temperature makes it such that the model is more likely to pick new / unusual tokens. While this can be good for creative tasks such as story writing, it can be harmful for objective tasks like Mathematical questions. 
+#### d)Other than temperature, several inference configurations could affect model performance. One important one is maximum completion length. This controls the maximum number of output tokens the model is allowed to generate. If this limit is too small, the model may not have enough space to complete all intermediate reasoning steps or even finish its final answer, which could directly reduce accuracy on more complex tasks.
+
+Another important parameter is top_p. This limits the model’s candidate next-token set to the smallest group of high-probability tokens whose cumulative probability reaches 
+𝑝
+p. In other words, instead of sampling from all possible tokens, the model samples only from a restricted probability mass. Lower values make the output more focused and conservative, while higher values allow more variation. Because of this, top_p can affect accuracy by controlling how much low-probability noise is allowed into the generation process.
+
+A further parameter is frequency penalty, which discourages the model from repeating the same tokens too often. This can help reduce repetitive or looping outputs, which may improve response quality in some cases. However, if set too aggressively, it could also harm performance by discouraging repetition that is actually useful or necessary for the task.
+
+Finally, structured output constraints could also improve performance. If the model is required to respond in a fixed format, such as JSON or a single-option answer format, this reduces the risk of getting the answer marked wrong due to formatting issues rather than reasoning mistakes. In tasks where the system expects a very specific answer structure, this can improve reliability even if it does not directly improve the underlying reasoning itself.
 ### Q2.3
+#### a)
+#### b)
+#### c)
 ## Question 3
 ### Q3.1
 In line 72 of file main.py /finetuning, the line is to use the function Datasets.train_test_split () to split the training set and the testing set. The argument test_size was set to 0.9, which means that 90% of the dataset will be used for testing and only 10% will be used for training. This will cause the models in the experiment to underperform due to a small sample size and a large amount of unseen data in the testing set.
