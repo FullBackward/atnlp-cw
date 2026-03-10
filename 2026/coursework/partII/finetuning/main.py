@@ -95,7 +95,7 @@ def main():
         lora_alpha=64,
         lora_dropout=0.05,
         bias="none",
-        # only fine-tuning on query and keys is an odd setup, it is more common to do all 4; query, keys, value and output.
+        # only fine-tuning on query and keys, is an odd setup, it is more common to do all 4; q_proj, k_proj, v_proj and o_proj.
         target_modules=["q_proj", "k_proj"],
     )
 

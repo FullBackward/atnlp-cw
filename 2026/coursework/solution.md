@@ -97,7 +97,7 @@ It also makes sense that Step 1 has the second-highest Shapley value. Step 1 ext
 The more noticeable part of the ordering is the gap between Steps 3 and 4, especially the fact that Step 4 has the lowest Shapley value. Step 3 mainly formalises the explicit facts given in the problem, so it is reasonable that its contribution is lower than Steps 1 and 2. However, Step 4, which rewrites the actual question to be solved in symbolic form, might initially seem like it should be more important. The low Shapley value suggests that the model benefits more from having the problem context and relationships clarified than from having the final target expression written out explicitly. In other words, reducing ambiguity in the setup appears to help more than formalising the final question alone.
 ## Question 3
 ### Q3.1
-In finetuning/main.py, line 72 uses Datasets.train_test_split() to divide the dataset into training and testing sets. In the original code, the argument test_size was set to 0.9, meaning that 90% of the dataset would be reserved for testing and only 10% for training. This is a bug because it leaves the model with far too little training data, which would likely reduce performance and make the fine-tuning experiment unreliable. The model would be evaluated on a large unseen test set despite having learned from only a small subset of the data. The fix is to change the split so that most of the data is used for training and only a smaller portion is reserved for testing.
+In finetuning/main.py, line 75 uses Datasets.train_test_split() to divide the dataset into training and testing sets. In the original code, the argument test_size was set to 0.9, meaning that 90% of the dataset would be reserved for testing and only 10% for training. This is a bug because it leaves the model with far too little training data, which would likely reduce performance and make the fine-tuning experiment unreliable. The model would be evaluated on a large unseen test set despite having learned from only a small subset of the data. The fix is to change the split so that most of the data is used for training and only a smaller portion is reserved for testing.
 
 There are also three unused, or “dead”, variables: DATASET_NAME, DATASET_CONFIG, and device. These do not directly affect the experiment, but they should still be removed because dead code reduces clarity and makes maintenance harder
 
@@ -119,6 +119,15 @@ There are also three unused, or “dead”, variables: DATASET_NAME, DATASET_CON
 | Mean| 31.00% | 33.00% |
 
 ### Q3.5
+As stated in the _Qwen2.5 Technical Report_, the instruct model went through a large supervised fine-tuning stage, stating over **1 million** curated examples
+Covering various different aspects, amongst which are mathematical step-by-step reasoning. 
+While our finetuning is performed on a much smaller subset of 2700 samples. The reason Base is still quite close to Instruct 
+is due to the fact that, while instruct may have a more complex learned state, it doesn't necessarily immediately translate into better performance on our task.
+Which is quite clear from the difference in performance before and after our own sft. So in conclusion, instruct is not just qwen base with sft on GSM8K. Rather it is base with a large amount of added post-training that already teaches it how to follow instrcutions better
+and how to perform step-by-step reasoning, such that the model can understand and perform these tasks more implecitely. Where as Base does not have this. This is also strenghtened by the fact that we performed LoRa Fine tuning, where we are updating specific parts of the model, which reduces any 
+_lose_ of previously trained and learned aspects.
+
+
 ## Question 4
 ### Q4.1
 ### Q4.2
