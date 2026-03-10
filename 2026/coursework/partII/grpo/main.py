@@ -91,12 +91,7 @@ def format_reward_func(completions, **kwargs):
     for c in completions:
         text = _completion_to_text(c)
 
-        has_phrase = re.search(r"(?i)\bThe answer is\b", text) is not None 
-
-        # If you want to be stricter (phrase + number), use:
-        has_phrase_and_number = re.search(
-            r"(?i)\bThe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text
-        ) is not None
+        has_phrase = "The answer is" in text 
 
         # Choose one:
         rewards.append(0.5 if has_phrase else 0.0)
