@@ -142,4 +142,21 @@ _lose_ of previously trained and learned aspects.
 ### Q4.3
 ## Question 5
 ### Q5.1
+Getting ideas for this by looking at what are some of the issues with the existing grpo.
+First of, the format_reward_func is very shallow. It is only teaching the model to have "the answer is" in it's output.
+So the model can be rewarded here despite having everything other than "the answer is" wrong.
+correctness_reward_func, while it does reward getting the answer right, it does not check for reasoning. 
+Neither of these reward funcs are directly attempting to help nor fix the LLM's reasoning capabilities.
+thereby the model can become better at matching the template without improving it's math capabilities.
+There is also a harsh reward for getting the answer correct, unless the model gets the answer exactly correct, then the model gets 0 reward points.
+Noticed an issue in the output where the end of the models generation can begin trailing off with repeated "endif" for example or random chinese characters.
+what if we increase size of training data?
+what if we change some of the hyper params. Doesn't seem to be used for Grpo so ignore.
+In utils.py there is no attention mask being passed. This raises a warning at runtime, wonder if it could change something to add that
+There is no sampling being performed. in utils they set do_sample = False. Which does greedy decoding. I don't supect this should affect the output result though. However that does mean that a model can begin to spiral into nonesense more often.
+gsm8k.py extracts the final answer from the generation it performs and tries to verify it.
+in gsm8k.py they define a very brittle answer extraction regex. Which can lead to miss marking things that are logically correct but not exactly the way they wanted it formatted.
+in load_gsm8k_questions the answer match only extracts **positive integers** which means that any asnwers with fractions or otherwise will fail. Most likely though GSM8K is just integers anyway so should be fine.
+Invalidate rate is rubbish. Basically it is saying as long as **A** number exists **Anywhere** in the output then it's valid. That is stupid and makes invalid a useless metric.
+
 ### Q5.2

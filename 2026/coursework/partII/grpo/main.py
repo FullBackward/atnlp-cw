@@ -65,6 +65,7 @@ def _extract_pred_any(text: str):
     if m:
         return _parse_number(m.group(1))
 
+    # 2) Fallback: last number in the text
     nums = re.findall(r"[-+]?\d[\d,]*\.?\d*", text)
     if not nums:
         return None
@@ -91,10 +92,15 @@ def format_reward_func(completions, **kwargs):
     for c in completions:
         text = _completion_to_text(c)
 
-        has_phrase = "The answer is" in text 
+        has_phrase = re.search(r"(?i)\bthe answer is\b", text) is not None
+
+        # If you want to be stricter (phrase + number), use:
+        has_phrase_and_number = re.search(
+            r"(?i)\bthe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text.lower()
+        ) is not None
 
         # Choose one:
-        rewards.append(0.5 if has_phrase else 0.0)
+        rewards.append(0.5 if has_phrase_and_number else 0.0)
         # rewards.append(1.0 if has_phrase else 0.0)
 
     return rewards
