@@ -16,6 +16,7 @@ import argparse
 
 def set_seed(seed=42):
     """Set seed for reproducibility"""
+    # While setting all the below seeds does allow for reproducibility, it doesn't necessarily lead us to getting the best results
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -29,7 +30,7 @@ def main():
 
     set_seed(42)
     parser = argparse.ArgumentParser(description="Process datasets")
-    parser.add_argument("--model_signature", default="HuggingFaceTB/SmolLM2-135M-Instruct", help="Huggingface model signature for training.")
+    parser.add_argument("--model_signature", default="HuggingFaceTB/SmolLM2-135M-Instruct", help="Huggingface model signature for training.") # default here is not one of the 2 models we are considering MINOR bug should be Qwen/Qwen2.5-0.5B-Instruct
     parser.add_argument("--output_path", default=None, help="Path to save the adapter.")
     parser.add_argument("--learning_rate", type=float, default=2e-5, help="Set for learning rate experiments.")
 
@@ -46,13 +47,14 @@ def main():
     os.environ["WANDB_WATCH"] = "false"
 
     if args.wandb_token:
+        # Here could make use of a try except clause which would properly raise the issue if the api key is wrong
         print(f"Logging into WandB with provided token {args.wandb_token}...")
         wandb.login(key=args.wandb_token)
-
+    #2 variables that aren't being used, very suspect
     DATASET_NAME = "openai/gsm8k"
     DATASET_CONFIG = "main"
     MAX_TRAIN_INSTANCES = 3000
-
+    #Device isn't being used
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model_id = args.model_signature
@@ -67,8 +69,9 @@ def main():
         tokenizer.pad_token_id = tokenizer.eos_token_id
     if getattr(model.config, "pad_token_id", None) is None:
         model.config.pad_token_id = model.config.eos_token_id
-
+    #Variable DATASET_NAME defined earlier but not used here, inconsistent
     ds = load_from_disk("dataset/gsm8k_3k_sft")
+
     train_test = ds.train_test_split(test_size=0.1, seed=42)
     train_dataset_raw = train_test["train"]
     eval_dataset_raw = train_test["test"]
@@ -92,6 +95,7 @@ def main():
         lora_alpha=64,
         lora_dropout=0.05,
         bias="none",
+        # only fine-tuning on query and keys is an odd setup, it is more common to do all 4; query, keys, value and output.
         target_modules=["q_proj", "k_proj"],
     )
 
