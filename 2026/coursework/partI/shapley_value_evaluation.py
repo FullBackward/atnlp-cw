@@ -54,12 +54,18 @@ def compute_v_S(df, all_subsets_included):
         Output: 
             v_S = {(): 0.8, (1,): 0.7, (2,): 0.6, (1, 2): 0.5}
     """
-    present_steps = df["present_steps"]
-    is_correct = df["is_correct"]
+    valid_subsets = set(all_subsets_included)
 
-    v_S = dict(zip(present_steps, is_correct))
-    v_S = {k: v for k, v in v_S.items() if k in all_subsets_included}
-    logger.debug('v_S: {}'.format(v_S))
+    filtered_df = df[df["present_steps"].isin(valid_subsets)]
+
+    v_S = (
+        filtered_df
+        .groupby("present_steps")["is_correct"]
+        .mean()
+        .to_dict()
+    )
+
+    logger.debug("v_S: %s", v_S)
     return v_S
 
 def compute_marginal_contributions(steps, v_S):
@@ -73,43 +79,67 @@ def compute_marginal_contributions(steps, v_S):
         Output:
             Delta_sum = {1: 0.08, 2: 0.12}, valid_permutations_count = 2
     """
-    permutations = list(itertools.permutations(steps)) # gives all possible permutations of steps
+    permutations = list(itertools.permutations(steps))
     Delta_sum = {i: 0.0 for i in steps}
     valid_permutations_count = 0
 
-    total_steps_set = set(steps)
-
     for pi in permutations:
         valid_permutation = True
+        temp_delta_sum = {i: 0.0 for i in steps}
+
+        logger.debug("Starting permutation %s", pi)
+
         for i in steps:
             idx_i = pi.index(i)
-            #############################################################################################
-            ###Question 6: INSERT CODE HERE: Retrieve S_i, S_i_union_i, S_i_sorted, included_S_i_sorted,
-            ### included_S_i_union_i_sorted
-            #############################################################################################
+
             S_i = pi[:idx_i]
-            S_i_union_i = pi[:idx_i+1]
-            S_i_sorted = sorted(S_i)
-            included_S_i_sorted = tuple(S_i_sorted)
+            S_i_union_i = pi[:idx_i + 1]
+            included_S_i_sorted = tuple(sorted(S_i))
             included_S_i_union_i_sorted = tuple(sorted(S_i_union_i))
 
             v_S_i = v_S.get(included_S_i_sorted, np.nan)
             v_S_i_union_i = v_S.get(included_S_i_union_i_sorted, np.nan)
+
             if np.isnan(v_S_i) or np.isnan(v_S_i_union_i):
                 valid_permutation = False
+                logger.debug(
+                    "Invalid permutation %s at step %s: S_i=%s, S_i_union_i=%s, "
+                    "v_S_i=%s, v_S_i_union_i=%s",
+                    pi, i, included_S_i_sorted, included_S_i_union_i_sorted,
+                    v_S_i, v_S_i_union_i
+                )
                 break
-            else:
 
-                Delta_sum[i] += v_S_i_union_i - v_S_i
-                logger.debug('Delta_sum: {}'.format(Delta_sum))
+            marginal = v_S_i_union_i - v_S_i
+            temp_delta_sum[i] += marginal
+
             logger.debug(
-                "pi=%s, i=%s, S_i=%s, S_i_union_i=%s, v_S_i=%s, v_S_i_union_i=%s, marginal=%s",
+                "pi=%s, i=%s, S_i=%s, S_i_union_i=%s, v_S_i=%s, "
+                "v_S_i_union_i=%s, marginal=%s, temp_delta_sum=%s",
                 pi, i, included_S_i_sorted, included_S_i_union_i_sorted,
-                v_S_i, v_S_i_union_i, v_S_i_union_i - v_S_i
+                v_S_i, v_S_i_union_i, marginal, temp_delta_sum
             )
+
         if valid_permutation:
-            logger.debug("After permutation %s, Delta_sum=%s", pi, Delta_sum)
             valid_permutations_count += 1
+
+            for i in steps:
+                Delta_sum[i] += temp_delta_sum[i]
+
+            logger.debug(
+                "Accepted permutation %s, temp_delta_sum=%s, Delta_sum=%s, valid_permutations_count=%s",
+                pi, temp_delta_sum, Delta_sum, valid_permutations_count
+            )
+        else:
+            logger.debug(
+                "Rejected permutation %s, Delta_sum unchanged=%s",
+                pi, Delta_sum
+            )
+
+    logger.debug(
+        "Finished marginal contributions: Delta_sum=%s, valid_permutations_count=%s",
+        Delta_sum, valid_permutations_count
+    )
 
     return Delta_sum, valid_permutations_count
 

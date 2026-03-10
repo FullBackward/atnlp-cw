@@ -77,7 +77,7 @@ In MQ2, the probability can be calculated from two different way: 1 is to use th
 ### Q2.2
 #### a) Running the eval with temperature 0.0 gave accuracy:  77.78%
 #### b) Running the eval with temperature 0.7 gave accuracy: 72.73%
-#### c) Increasing temperature makes it such that the model is more likely to pick new / unusual tokens. While this can be good for creative tasks such as story writing, it can be harmful for objective tasks like Mathematical questions. 
+#### c) When the temperature is increased from 0.0 to 0.7, the model becomes less deterministic and more willing to select lower-probability tokens. This can improve diversity, but for tasks with clear correct answers, such as mathematical questions, it usually harms performance because the model is more likely to deviate from the most reliable reasoning path. Therefore, the accuracy is expected to be lower at 0.7 than at 0.0.
 #### d)Other than temperature, several inference configurations could affect model performance. One important one is maximum completion length. This controls the maximum number of output tokens the model is allowed to generate. If this limit is too small, the model may not have enough space to complete all intermediate reasoning steps or even finish its final answer, which could directly reduce accuracy on more complex tasks.
 
 Another important parameter is top_p. This limits the model’s candidate next-token set to the smallest group of high-probability tokens whose cumulative probability reaches 
@@ -88,9 +88,13 @@ A further parameter is frequency penalty, which discourages the model from repea
 
 Finally, structured output constraints could also improve performance. If the model is required to respond in a fixed format, such as JSON or a single-option answer format, this reduces the risk of getting the answer marked wrong due to formatting issues rather than reasoning mistakes. In tasks where the system expects a very specific answer structure, this can improve reliability even if it does not directly improve the underlying reasoning itself.
 ### Q2.3
-#### a)
-#### b)
-#### c)
+#### a) {1: 0.036253115107429124, 2: 0.04065355515143354, 3: 0.03240273006892528, 4: 0.019201409936912068}
+#### b) The step with the highest Shapley value is Step 2, followed by Step 1, then 3, then 4. Step 2 involves translating the natural-language word problem into logical formulas, which is likely the most valuable part of the whole method. This is because it turns the question from a free-text reasoning problem into a more structured and therefore more solvable form. Instead of spending as much effort interpreting wording, context, and hidden relations in the text, the model can work with a clearer formal representation. That likely makes the reasoning process more reliable, which would explain why Step 2 has the highest Shapley value.
+#### c) Ordering the steps by their Shapley values gives: Step 2 > Step 1 > Step 3 > Step 4. This ordering is largely unsurprising. As discussed earlier, Step 2 is the stage that converts the free-text problem into logical or mathematical formulas, so it makes sense that it has the highest contribution. This step removes much of the ambiguity of natural language and turns the problem into a more structured form that is easier to reason over.
+
+It also makes sense that Step 1 has the second-highest Shapley value. Step 1 extracts the relevant variables, entities, and pieces of information from the free text, which already reduces ambiguity significantly. The fact that Step 2 is still ranked above Step 1 suggests that, while the model is already fairly capable of identifying relevant information from natural language, the larger gain comes from explicitly structuring that information into formal relations.
+
+The more noticeable part of the ordering is the gap between Steps 3 and 4, especially the fact that Step 4 has the lowest Shapley value. Step 3 mainly formalises the explicit facts given in the problem, so it is reasonable that its contribution is lower than Steps 1 and 2. However, Step 4, which rewrites the actual question to be solved in symbolic form, might initially seem like it should be more important. The low Shapley value suggests that the model benefits more from having the problem context and relationships clarified than from having the final target expression written out explicitly. In other words, reducing ambiguity in the setup appears to help more than formalising the final question alone.
 ## Question 3
 ### Q3.1
 In line 72 of file main.py /finetuning, the line is to use the function Datasets.train_test_split () to split the training set and the testing set. The argument test_size was set to 0.9, which means that 90% of the dataset will be used for testing and only 10% will be used for training. This will cause the models in the experiment to underperform due to a small sample size and a large amount of unseen data in the testing set.
