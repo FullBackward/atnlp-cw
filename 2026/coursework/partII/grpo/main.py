@@ -45,57 +45,39 @@ def _completion_to_text(c):
         return "\n".join(_completion_to_text(x) for x in c)
     return str(c)
 
-def _extract_number(text: str):
-    """
-    Extract a numeric answer.
-    Priority:
-      1) number following 'the answer is'
-      2) last number anywhere in the text
-    Returns float or int when clean, else None.
-    """
-    if not text:
-        return None
-
-    # 1) Prefer "the answer is <number>"
-    m = re.search(r"(?i)\bthe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text)
-    if m:
-        s = m.group(1).replace(",", "")
-        try:
-            return int(s) if re.fullmatch(r"[-+]?\d+", s) else float(s)
-        except ValueError:
-            pass
-
-    # 2) Fallback: last number in the text
-    nums = re.findall(r"[-+]?\d[\d,]*\.?\d*", text)
-    if not nums:
-        return None
-    s = nums[-1].replace(",", "")
+def _parse_number(s: str):
+    s = s.replace(",", "")
     try:
         return int(s) if re.fullmatch(r"[-+]?\d+", s) else float(s)
     except ValueError:
         return None
 
-def _extract_gt_answer(ans):
+def _extract_pred_any(text: str):
     """
-    Ground-truth may be:
-      - '42'
-      - '... #### 42'
-      - list of such strings
-    Returns float/int or None.
+    Reward correctness even if format is wrong:
+    - Prefer number after 'the answer is' (case-insensitive)
+    - Else fallback to last number in text
     """
-    if ans is None:
+    if not text:
         return None
-    if isinstance(ans, (list, tuple)):
-        # assume aligned with completions; extraction done per-item elsewhere
-        return None
-    ans_str = str(ans)
-    return _extract_number(ans_str)
 
-def _as_list(x, n):
-    """Broadcast scalars to length n; keep lists as-is."""
-    if isinstance(x, (list, tuple)):
-        return list(x)
-    return [x] * n
+    m = re.search(r"(?i)\bthe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text)
+    if m:
+        return _parse_number(m.group(1))
+
+    nums = re.findall(r"[-+]?\d[\d,]*\.?\d*", text)
+    if not nums:
+        return None
+    return _parse_number(nums[-1])
+
+def _extract_gt(answer):
+    """
+    GSM8K GT often has '... #### 42' – take the last number.
+    """
+    nums = re.findall(r"[-+]?\d[\d,]*\.?\d*", str(answer))
+    if not nums:
+        return None
+    return _parse_number(nums[-1])
 
 
 # ---------- reward functions ----------
@@ -109,44 +91,35 @@ def format_reward_func(completions, **kwargs):
     for c in completions:
         text = _completion_to_text(c)
 
-        has_phrase = re.search(r"(?i)\bthe answer is\b", text) is not None
+        has_phrase = re.search(r"(?i)\bThe answer is\b", text) is not None 
 
         # If you want to be stricter (phrase + number), use:
         has_phrase_and_number = re.search(
-            r"(?i)\bthe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text
+            r"(?i)\bThe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text
         ) is not None
 
         # Choose one:
-        rewards.append(1.0 if has_phrase_and_number else 0.0)
+        rewards.append(0.5 if has_phrase else 0.0)
         # rewards.append(1.0 if has_phrase else 0.0)
 
     return rewards
 
 
 def correctness_reward_func(prompts, completions, answer, **kwargs):
-    """
-    Reward for getting the correct numeric answer.
-    - Extract numeric prediction from completion (prefer after 'the answer is')
-    - Extract numeric ground-truth from `answer`
-    - Reward 1.0 if equal, else 0.0
-    """
     rewards = []
-    n = len(completions)
 
-    answers = _as_list(answer, n)
+    # broadcast scalar answer if needed
+    answers = list(answer) if isinstance(answer, (list, tuple)) else [answer] * len(completions)
 
     for c, a in zip(completions, answers):
-        pred_text = _completion_to_text(c)
-        pred_num = _extract_number(pred_text)
+        text = _completion_to_text(c)
+        pred = _extract_pred_any(text)
+        gt = _extract_gt(a)
 
-        gt_num = _extract_number(str(a))  # handles "#### 42" too
-
-        if pred_num is None or gt_num is None:
+        if pred is None or gt is None:
             rewards.append(0.0)
-            continue
-
-        # Exact numeric match (int/float). If you want tolerance, change below.
-        rewards.append(1.0 if pred_num == gt_num else 0.0)
+        else:
+            rewards.append(2.0 if pred == gt else 0.0)
 
     return rewards
 

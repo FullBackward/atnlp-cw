@@ -115,8 +115,10 @@ There are also three unused, or “dead”, variables: DATASET_NAME, DATASET_CON
 | --- | -------------------- | ---------------------|
 | 1   | 29.00% Valid: 29.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
 | 2   | 31.00% Valid: 31.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
-| 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 32.00% Valid: 32.00%; Invalid: 0.00%|
-| Mean| 31.00% | 33.00% |
+| 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 35.00% Valid: 35.00%; Invalid: 0.00%|
+| Mean| 31.00% | 34.00% |
+
+Use 31% and 35%
 
 ### Q3.5
 As stated in the _Qwen2.5 Technical Report_, the instruct model went through a large supervised fine-tuning stage, stating over **1 million** curated examples
