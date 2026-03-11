@@ -20,15 +20,8 @@ def set_seed(seed=42):
     torch.backends.cudnn.deterministic = True
     os.environ['PYTHONHASHSEED'] = str(seed)
 
+
 def _completion_to_text(c):
-    """
-    TRL/GRPO completions can be:
-      - a string
-      - a dict like {"content": "..."} or {"generated_text": "..."}
-      - a list of chat messages [{"role":..., "content":...}, ...]
-      - a nested list like [[{"role":...,"content":...}]] depending on pipeline
-    This normalizes to plain text.
-    """
     if c is None:
         return ""
     if isinstance(c, str):
@@ -36,10 +29,8 @@ def _completion_to_text(c):
     if isinstance(c, dict):
         return c.get("content") or c.get("generated_text") or c.get("text") or str(c)
     if isinstance(c, (list, tuple)):
-        # list of messages?
         if len(c) > 0 and isinstance(c[0], dict) and "content" in c[0]:
             return "\n".join(m.get("content", "") for m in c if isinstance(m, dict))
-        # nested list?
         if len(c) > 0 and isinstance(c[0], (list, tuple)):
             return "\n".join(_completion_to_text(x) for x in c)
         return "\n".join(_completion_to_text(x) for x in c)
@@ -53,11 +44,6 @@ def _parse_number(s: str):
         return None
 
 def _extract_pred_any(text: str):
-    """
-    Reward correctness even if format is wrong:
-    - Prefer number after 'the answer is' (case-insensitive)
-    - Else fallback to last number in text
-    """
     if not text:
         return None
 
@@ -72,44 +58,21 @@ def _extract_pred_any(text: str):
     return _parse_number(nums[-1])
 
 def _extract_gt(answer):
-    """
-    GSM8K GT often has '... #### 42' – take the last number.
-    """
     nums = re.findall(r"[-+]?\d[\d,]*\.?\d*", str(answer))
     if not nums:
         return None
     return _parse_number(nums[-1])
 
-
-# ---------- reward functions ----------
 def format_reward_func(completions, **kwargs):
-    """
-    Reward for adhering to the SFT format:
-      - must contain the phrase "the answer is" (case-insensitive)
-      - optionally, you can require a number right after it (enabled below)
-    """
     rewards = []
     for c in completions:
         text = _completion_to_text(c)
-
         has_phrase = re.search(r"(?i)\bthe answer is\b", text) is not None
-
-        # If you want to be stricter (phrase + number), use:
-        has_phrase_and_number = re.search(
-            r"(?i)\bthe answer is\b\s*([-+]?\d[\d,]*\.?\d*)", text.lower()
-        ) is not None
-
-        # Choose one:
-        rewards.append(0.5 if has_phrase_and_number else 0.0)
-        # rewards.append(1.0 if has_phrase else 0.0)
-
+        rewards.append(0.5 if has_phrase else 0.0)
     return rewards
-
 
 def correctness_reward_func(prompts, completions, answer, **kwargs):
     rewards = []
-
-    # broadcast scalar answer if needed
     answers = list(answer) if isinstance(answer, (list, tuple)) else [answer] * len(completions)
 
     for c, a in zip(completions, answers):
