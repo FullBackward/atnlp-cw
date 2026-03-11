@@ -67,7 +67,7 @@ def main():
     
     if training == "sft+grpo":
 
-        with open(log_file_path, 'w') as f:
+        with open(log_file_path, 'a') as f:
             f.write(f"Evaluating model {args.model_signature} with SFT from {args.sft_adapter_path} and GRPO from {args.grpo_adapter_path}.\n")
         
         base_id = args.model_signature
@@ -140,7 +140,7 @@ def main():
     end_time = time.time()
     duration = end_time - start_time
 
-    print(results)
+    #print(results)
     print(f"Final results saved to {output_file_path}")
     print(f"Overall Accuracy (including invalid): {overall_accuracy:.2%}")
     print(f"Valid Accuracy (excluding invalid): {valid_accuracy:.2%}")

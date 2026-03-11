@@ -142,21 +142,15 @@ _lose_ of previously trained and learned aspects.
 ### Q4.3
 ## Question 5
 ### Q5.1
-Getting ideas for this by looking at what are some of the issues with the existing grpo.
-First of, the format_reward_func is very shallow. It is only teaching the model to have "the answer is" in it's output.
-So the model can be rewarded here despite having everything other than "the answer is" wrong.
-correctness_reward_func, while it does reward getting the answer right, it does not check for reasoning. 
-Neither of these reward funcs are directly attempting to help nor fix the LLM's reasoning capabilities.
-thereby the model can become better at matching the template without improving it's math capabilities.
-There is also a harsh reward for getting the answer correct, unless the model gets the answer exactly correct, then the model gets 0 reward points.
-Noticed an issue in the output where the end of the models generation can begin trailing off with repeated "endif" for example or random chinese characters.
-what if we increase size of training data?
-what if we change some of the hyper params. Doesn't seem to be used for Grpo so ignore.
-In utils.py there is no attention mask being passed. This raises a warning at runtime, wonder if it could change something to add that
-There is no sampling being performed. in utils they set do_sample = False. Which does greedy decoding. I don't supect this should affect the output result though. However that does mean that a model can begin to spiral into nonesense more often.
-gsm8k.py extracts the final answer from the generation it performs and tries to verify it.
-in gsm8k.py they define a very brittle answer extraction regex. Which can lead to miss marking things that are logically correct but not exactly the way they wanted it formatted.
-in load_gsm8k_questions the answer match only extracts **positive integers** which means that any asnwers with fractions or otherwise will fail. Most likely though GSM8K is just integers anyway so should be fine.
-Invalidate rate is rubbish. Basically it is saying as long as **A** number exists **Anywhere** in the output then it's valid. That is stupid and makes invalid a useless metric.
+#### Proposed Method: Self-Consistency Decoding at Evaluation Time
 
+The proposed improvement is to replace single-pass greedy decoding during evaluation with self-consistency decoding. In the current pipeline, the model generates only one answer for each GSM8K question and that single output is treated as the final prediction. This makes evaluation fragile, particularly for mathematical reasoning, where one early decoding error can derail the entire reasoning chain and lead to an incorrect final answer. This issue is especially relevant for a small model, whose outputs may vary substantially depending on the exact sequence of token choices made during generation.
+
+To address this, the evaluation procedure will be modified so that the model produces multiple candidate solutions for each question using stochastic decoding rather than greedy decoding. Specifically, sampling will be enabled in model.generate, making use of parameters such as temperature and top-p to encourage diverse reasoning paths. For each question, the model will generate **five separate completions**. A final numeric answer will then be extracted from each completion, and the overall prediction will be determined by majority vote across the extracted answers. In other words, the answer that appears most frequently among the sampled outputs will be selected as the model’s final response.
+
+The motivation for this method is that mathematical reasoning often admits several possible intermediate trajectories, some of which may fail while others still converge to the correct result. Under greedy decoding, the model is forced to commit to a single reasoning path, making it highly sensitive to early mistakes. Self-consistency decoding reduces this brittleness by allowing several sampled attempts and aggregating them into one final answer. As a result, even if some generations are incorrect or contain flawed reasoning, the correct answer may still emerge as the most consistent prediction across samples.
+
+In addition to the main change, a minor supporting adjustment may be made to the answer extraction procedure. The current fallback behaviour, which extracts the final number appearing anywhere in the output, is overly permissive and may incorrectly treat malformed generations as valid answers. Tightening this extraction logic would make the evaluation more reliable and better aligned with the output format encouraged during fine-tuning. However, this would remain a secondary change, while the main contribution of the proposed method is the use of self-consistency decoding itself.
+
+A limitation of this approach is that it does not improve the model’s underlying mathematical ability through training. Instead, it improves the robustness of inference by reducing dependence on a single sampled reasoning trace. It also increases evaluation cost, since each question must be generated multiple times. Nevertheless, this trade-off is reasonable in the present setting, as the GSM8K test subset is small and the goal of this section is to propose a meaningful and well-motivated improvement to the pipeline rather than a computationally minimal one.
 ### Q5.2
