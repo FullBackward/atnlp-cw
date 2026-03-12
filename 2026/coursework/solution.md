@@ -13,7 +13,7 @@
     by lemma C_ratio_D, $C = 60*2 = 120$;\
     by lemma R_to_C_and_D, $R = 120 + 60 - 12 = 168$;\
     total = $R + C + D = 60 + 120 + 168 = 348$;\
-    Conclusion: the total number of pets in the neighbourhood is 448.
+    Conclusion: the total number of pets in the neighbourhood is 348.
 - MQ2\
     Formalise:\
     D = Defective;\
@@ -70,9 +70,21 @@ Another advantage of this approach is that it reduces the risk of falling for mi
 However, the structured approach also has limitations. The formalisation process can be time-consuming, especially for relatively simple problems where an experienced solver might arrive at the correct answer more quickly through intuition. Additionally, if the initial identification or representation of facts is incorrect, the structured process may simply formalise the mistake rather than correct it. In this sense, the approach improves clarity but does not guarantee correctness.
 
 Overall, the structured reasoning steps helped make the reasoning process more systematic and less dependent on intuition. While the approach may add extra steps and time to the process, it provides a clearer framework for understanding the problem and reduces the likelihood of misinterpreting the information given.
-### Q1.5 **WIP**
-**This question I am not quite sure, it seems to me in practical that how the intermediate steps are produced is more important**\
-In MQ2, the probability can be calculated from two different way: 1 is to use the Bayes rule like stated in Q1.2; 2 is to use a simple counting approach to calculate: $P(D|Y) = \frac{D_Y}{D_Y + D_X}$. The complexity of these two approaches differs allot.  
+### Q1.5
+
+Yes, I think an additional formalisation step could improve the process. The current sequence identifies variables, translates relations, states facts, and formalises the final question, but it does not explicitly specify the most appropriate solution strategy. A useful additional formalisation step would be Method Selection and Simplification. In this step, the solver examines the formalised equations or probability expressions and rewrites them into the simplest directly solvable form. The purpose of this step is not to introduce new facts, but to reduce the number of possible solution paths and make the final derivation more mechanical.
+
+For example, in MQ2, after formalising the task as finding $P(Y \mid D)$, the problem can be solved in at least two ways: by using Bayes' rule or by directly counting defective chips. Since there are 3 defective chips in total and 2 of them came from Company Y, the probability is simply:
+
+$$
+P(Y \mid D) = \frac{2}{3}
+$$
+
+This is simpler than applying the full Bayes' formula, even though both methods are valid.
+
+Similarly, in MQ1, once the relationships have been formalised, a simplification step could substitute the known value $D = 60$ immediately, then derive $C = 120$ and $R = 168$. This reduces the problem to straightforward arithmetic.
+
+Therefore, I do think an extra formalisation step would improve the process, because it bridges the gap between representing the problem and solving it efficiently. The existing four steps clarify the structure of the problem, but an explicit strategy-selection step would make the reasoning more reliable and less dependent on the solver informally deciding what to do next.
 ## Question 2
 ### Q2.2
 #### a) 
@@ -93,7 +105,7 @@ A further parameter is frequency penalty, which discourages the model from repea
 Finally, structured output constraints could also improve performance. If the model is required to respond in a fixed format, such as JSON or a single-option answer format, this reduces the risk of getting the answer marked wrong due to formatting issues rather than reasoning mistakes. In tasks where the system expects a very specific answer structure, this can improve reliability even if it does not directly improve the underlying reasoning itself.
 ### Q2.3
 #### a) 
-{1: 0.036253115107429124, 2: 0.04065355515143354, 3: 0.03240273006892528, 4: 0.019201409936912068}
+{1: 0.036, 2: 0.041, 3: 0.032, 4: 0.019}
 #### b) 
 The step with the highest Shapley value is Step 2, followed by Step 1, then 3, then 4. Step 2 involves translating the natural-language word problem into logical formulas, which is likely the most valuable part of the whole method. This is because it turns the question from a free-text reasoning problem into a more structured and therefore more solvable form. Instead of spending as much effort interpreting wording, context, and hidden relations in the text, the model can work with a clearer formal representation. That likely makes the reasoning process more reliable, which would explain why Step 2 has the highest Shapley value.
 #### c) 
@@ -125,16 +137,13 @@ There are also three unused, or “dead”, variables: DATASET_NAME, DATASET_CON
 | 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 35.00% Valid: 35.00%; Invalid: 0.00%|
 | Mean| 31.00% | 34.00% |
 
-Use 31% and 35%
 
 ### Q3.5
-As stated in the _Qwen2.5 Technical Report_, the instruct model went through a large supervised fine-tuning stage, stating over **1 million** curated examples
-Covering various different aspects, amongst which are mathematical step-by-step reasoning. 
-While our finetuning is performed on a much smaller subset of 2700 samples. The reason Base is still quite close to Instruct 
-is due to the fact that, while instruct may have a more complex learned state, it doesn't necessarily immediately translate into better performance on our task.
-Which is quite clear from the difference in performance before and after our own sft. So in conclusion, instruct is not just qwen base with sft on GSM8K. Rather it is base with a large amount of added post-training that already teaches it how to follow instrcutions better
-and how to perform step-by-step reasoning, such that the model can understand and perform these tasks more implecitely. Where as Base does not have this. This is also strenghtened by the fact that we performed LoRa Fine tuning, where we are updating specific parts of the model, which reduces any 
-_lose_ of previously trained and learned aspects.
+The Qwen2.5 Technical Report states that the Instruct model was already post-trained on over 1 million curated examples, including instruction-following and mathematical step-by-step reasoning. By contrast, our SFT uses only about 2,700 GSM8K examples.
+
+This means the Instruct model starts from a much stronger state for tasks like GSM8K. It already knows better how to follow prompts and produce structured reasoning, while the Base model does not. Our smaller fine-tuning stage improves both models, but it is not enough to fully recreate the broad post-training that the Instruct model has already received.
+
+This is also reinforced by LoRA fine-tuning, since LoRA only updates part of the model rather than fully retraining it. As a result, the Instruct model keeps more of its existing instruction-following and reasoning ability, which helps explain why it still performs better after fine-tuning.
 
 
 ## Question 4
@@ -157,33 +166,63 @@ testing conditions, such as real-world scenarios. With consider to our reward fu
 ### Q5.1
 #### Proposed Method: Self-Consistency Decoding at Evaluation Time
 
-The proposed improvement is to replace single-pass greedy decoding during evaluation with self-consistency decoding. In the current pipeline, the model generates only one answer for each GSM8K question and that single output is treated as the final prediction. This makes evaluation fragile, particularly for mathematical reasoning, where one early decoding error can derail the entire reasoning chain and lead to an incorrect final answer. This issue is especially relevant for a small model, whose outputs may vary substantially depending on the exact sequence of token choices made during generation.
+The main proposed improvement is to replace single-pass greedy decoding during evaluation with self-consistency decoding. In the current pipeline, the model generates only one answer for each GSM8K question, and that single output is treated as the final prediction. This makes evaluation fragile, particularly for mathematical reasoning, where one early decoding error can derail the entire reasoning chain and lead to an incorrect final answer. This issue is especially relevant for a small model, whose outputs may vary substantially depending on the exact sequence of token choices made during generation.
 
-To address this, the evaluation procedure will be modified so that the model produces multiple candidate solutions for each question using stochastic decoding rather than greedy decoding. Specifically, sampling will be enabled in model.generate, making use of parameters such as temperature and top-p to encourage diverse reasoning paths. For each question, the model will generate **five separate completions**. A final numeric answer will then be extracted from each completion, and the overall prediction will be determined by majority vote across the extracted answers. In other words, the answer that appears most frequently among the sampled outputs will be selected as the model’s final response.
+To address this, the evaluation procedure will be modified so that the model produces multiple candidate solutions for each question using stochastic decoding rather than greedy decoding. Specifically, sampling will be enabled in model.generate, making use of parameters such as temperature and top-p to encourage diverse reasoning paths. For each question, the model will generate five separate completions. A final numeric answer will then be extracted from each completion, and the overall prediction will be determined by majority vote across the extracted answers. In other words, the answer that appears most frequently among the sampled outputs will be selected as the model’s final response.
 
 The motivation for this method is that mathematical reasoning often admits several possible intermediate trajectories, some of which may fail while others still converge to the correct result. Under greedy decoding, the model is forced to commit to a single reasoning path, making it highly sensitive to early mistakes. Self-consistency decoding reduces this brittleness by allowing several sampled attempts and aggregating them into one final answer. As a result, even if some generations are incorrect or contain flawed reasoning, the correct answer may still emerge as the most consistent prediction across samples.
 
-In addition to the main change, a minor supporting adjustment may be made to the answer extraction procedure. The current fallback behaviour, which extracts the final number appearing anywhere in the output, is overly permissive and may incorrectly treat malformed generations as valid answers. Tightening this extraction logic would make the evaluation more reliable and better aligned with the output format encouraged during fine-tuning. However, this would remain a secondary change, while the main contribution of the proposed method is the use of self-consistency decoding itself.
+In addition to the main change, a minor supporting adjustment may be made to the answer extraction procedure. The current fallback behaviour, which extracts the final number appearing anywhere in the output, is overly permissive and may incorrectly treat malformed generations as valid answers. Tightening this extraction logic would make the evaluation more reliable and better aligned with the output format encouraged during fine-tuning. However, this remains a supporting implementation detail rather than the main contribution. The central improvement in this section is the use of self-consistency decoding itself.
 
 A limitation of this approach is that it does not improve the model’s underlying mathematical ability through training. Instead, it improves the robustness of inference by reducing dependence on a single sampled reasoning trace. It also increases evaluation cost, since each question must be generated multiple times. Nevertheless, this trade-off is reasonable in the present setting, as the GSM8K test subset is small and the goal of this section is to propose a meaningful and well-motivated improvement to the pipeline rather than a computationally minimal one.
 
-Another improvement is to separate the reward score for correct answer + correct format with correct answer + incorrect format. We propose that by setting the reward for correct answer + correct format to 2.5, while reward 2.0 for correct answer + wrong format. This is to encourage the model to learn for higher reward, reduce shortcuts, thus improve the performance. Meanwhile, we set the reward for format correctness to 1.0 to shorten the gap between the two rewards. This is due to an observation in the evaluation results which contains a large number of bracketed answer and nested answer. 
+Secondary Exploratory Analysis: Reward Redesign
+
+As a secondary exploratory analysis, an additional variation can be considered in the GRPO reward design. This is not the primary proposed method, but rather a small follow-up experiment motivated by qualitative observations from earlier results. In particular, some GRPO outputs showed bracketed answers, nested answer phrases, and other formatting artefacts, suggesting that the current reward structure may not distinguish strongly enough between merely matching the expected template and producing a correctly formatted final answer.
+
+To explore this, the reward function could be modified so that outputs receiving both the correct answer and the correct format obtain a slightly higher reward than outputs that are correct but badly formatted. For example, the reward for correct answer + correct format could be set to 2.5, while the reward for correct answer + incorrect format remains 2.0. At the same time, the reward for format compliance alone could be increased to 1.0. The intention is to give the model a clearer incentive structure: correct reasoning remains the main objective, but properly formatted correct answers are preferred over loosely formatted ones.
+
+This secondary analysis is included only as an exploratory extension. Unlike self-consistency decoding, which directly targets the brittleness of evaluation, the reward redesign changes the training objective itself and would require additional GRPO training runs. It is therefore treated as a supplementary investigation rather than the main proposed improvement.### Q5.2
+
 ### Q5.2
+From Q5.1, two hypotheses were investigated:
 
-From Q5.1 we have 2 hypothesis:\
-Hypothesis 1: Whether the proposed multi-results, vote based evaluation process is better to report the true performance in reasoning ability.\
-Hypothesis 2: Whether the propased three-senario reward mechanism improve the performance.
+Hypothesis 1. The proposed multi-sample, vote-based evaluation process provides a more robust estimate of model performance on mathematical reasoning than the original single greedy decode evaluation.
 
-The experiments are:
-1. Newly trained GRPO model with new three-senario reward mechanism, evalated on unmodified evaluation pipeline.
-2. Pretrained GRPO model from Q4, evaluated on new evaluation pipeline.
-3. Newly trained GRPO model with new three-senario reward mechanism, evaluated on new evaluation pipeline.
-4. Pretrained STF model from Q3, evaluated on new evaluation pipeline.
+Hypothesis 2. A revised three-scenario reward mechanism, which distinguishes between correct answers with correct format and correct answers with incorrect format, improves GRPO training performance.
 
-Results:\
-Experiment 1: overall accuracy: 26.00%; valid accuracy: 26.00%; invalid accuracy 0.00%.\
-Experiment 2: overall accuracy: 49.00%; valid accuracy: 52.69%; invalid accuracy 7.00%.\
-Experiment 3: overall accuracy: 35.00%; valid accuracy: 39.77%; invalid accuracy 12.00%.\
-Experiment 4: overall accuracy: 46.00%; valid accuracy: 48.42%; invalid accuracy 5.00%.
+Experiments
 
-The results suggests no enough evidence to reject hypothesis 1, and enough evidence to reject hypothesis 2. This suggest that the improvement of GRPO in reasoning capacity was not shown by the old evaluation pipeline, with the GRPO model reported 49.00% accuracy while the STF model reported 46.00% on the new evaluation pipeline. However, it is shown that the new reward mechanism did not contribute to the performance, with new trained GRPO model scored low in both old and new evaluation pipeline. Therefore, we can conclude, under the current circumstances with only 2 epoch of training, the format learning for the model is not likely to improve majorly. The improvement of correctness on the GRPO model over the SFT model is not significant.
+Newly trained GRPO model with the revised three-scenario reward mechanism, evaluated on the original evaluation pipeline.
+
+Pretrained GRPO model from Q4, evaluated on the new self-consistency evaluation pipeline.
+
+Newly trained GRPO model with the revised three-scenario reward mechanism, evaluated on the new self-consistency evaluation pipeline.
+
+Pretrained SFT model from Q3, evaluated on the new self-consistency evaluation pipeline.
+
+Results
+
+Experiment 1: overall accuracy = 26.00%, valid accuracy = 26.00%, invalid rate = 0.00%
+
+Experiment 2: overall accuracy = 49.00%, valid accuracy = 52.69%, invalid rate = 7.00%
+
+Experiment 3: overall accuracy = 35.00%, valid accuracy = 39.77%, invalid rate = 12.00%
+
+Experiment 4: overall accuracy = 46.00%, valid accuracy = 48.42%, invalid rate = 5.00%
+
+Discussion
+
+The results provide preliminary support for Hypothesis 1, but they do not support Hypothesis 2.
+
+For Hypothesis 1, both the GRPO and SFT models performed better under the new evaluation pipeline than under the original single-pass greedy evaluation. Previously, the best SFT-Instruct result was 35.00%, whereas under the new evaluation pipeline the pretrained SFT model reached 46.00%. Similarly, the pretrained GRPO model reached 49.00% under the new pipeline. This suggests that the added self-consistency decoding procedure, together with the tighter answer extraction logic, captures correct answers that may be missed when evaluation depends on only one greedy generation.
+
+However, this comparison should be interpreted carefully. The evaluation setup was changed not only through multi-sample majority voting, but also through answer extraction that was made more closely aligned with the fine-tuning target format. As a result, some of the observed improvement may come from more appropriate evaluation rather than from the decoding change alone. Even so, the results still suggest that single-pass greedy decoding likely understated the performance of both models, especially on tasks where one early decoding error can derail the full reasoning chain.
+
+For Hypothesis 2, the revised three-scenario reward mechanism did not improve performance. The newly trained GRPO model performed worse than the pretrained GRPO model under both evaluation settings, scoring 26.00% on the original pipeline and 35.00% overall accuracy on the new pipeline. This indicates that the modified reward design did not successfully improve reasoning performance in this setup.
+
+One possible explanation is that the revised reward mechanism still does not reward good intermediate reasoning strongly enough. It changes how formatting is valued, but it may still fail to guide the model toward more reliable mathematical solution paths. In other words, the reward adjustment may have changed the surface behavior of the model more than its actual reasoning quality.
+
+Conclusion
+
+Overall, the main proposed method, self-consistency decoding at evaluation time, appears to be the more useful improvement. It produced higher reported performance for both pretrained models and seems to provide a more robust estimate than relying on a single greedy decode. By contrast, the revised three-scenario reward mechanism should be treated as a secondary exploratory analysis, since the current experiments do not show evidence that it improves performance. Under the present setup, the reward modification did not help, whereas the evaluation-time self-consistency method showed clearer practical benefit.
