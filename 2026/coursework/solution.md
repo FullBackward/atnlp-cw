@@ -75,10 +75,14 @@ Overall, the structured reasoning steps helped make the reasoning process more s
 In MQ2, the probability can be calculated from two different way: 1 is to use the Bayes rule like stated in Q1.2; 2 is to use a simple counting approach to calculate: $P(D|Y) = \frac{D_Y}{D_Y + D_X}$. The complexity of these two approaches differs allot.  
 ## Question 2
 ### Q2.2
-#### a) Running the eval with temperature 0.0 gave accuracy:  77.78%
-#### b) Running the eval with temperature 0.7 gave accuracy: 72.73%
-#### c) When the temperature is increased from 0.0 to 0.7, the model becomes less deterministic and more willing to select lower-probability tokens. This can improve diversity, but for tasks with clear correct answers, such as mathematical questions, it usually harms performance because the model is more likely to deviate from the most reliable reasoning path. Therefore, the accuracy is expected to be lower at 0.7 than at 0.0.
-#### d)Other than temperature, several inference configurations could affect model performance. One important one is maximum completion length. This controls the maximum number of output tokens the model is allowed to generate. If this limit is too small, the model may not have enough space to complete all intermediate reasoning steps or even finish its final answer, which could directly reduce accuracy on more complex tasks.
+#### a) 
+Running the eval with temperature 0.0 gave accuracy:  77.78%
+#### b) 
+Running the eval with temperature 0.7 gave accuracy: 72.73%
+#### c) 
+When the temperature is increased from 0.0 to 0.7, the model becomes less deterministic and more willing to select lower-probability tokens. This can improve diversity, but for tasks with clear correct answers, such as mathematical questions, it usually harms performance because the model is more likely to deviate from the most reliable reasoning path. Therefore, the accuracy is expected to be lower at 0.7 than at 0.0.
+#### d)
+Other than temperature, several inference configurations could affect model performance. One important one is maximum completion length. This controls the maximum number of output tokens the model is allowed to generate. If this limit is too small, the model may not have enough space to complete all intermediate reasoning steps or even finish its final answer, which could directly reduce accuracy on more complex tasks.
 
 Another important parameter is top_p. This limits the model’s candidate next-token set to the smallest group of high-probability tokens whose cumulative probability reaches 
 𝑝
@@ -88,9 +92,12 @@ A further parameter is frequency penalty, which discourages the model from repea
 
 Finally, structured output constraints could also improve performance. If the model is required to respond in a fixed format, such as JSON or a single-option answer format, this reduces the risk of getting the answer marked wrong due to formatting issues rather than reasoning mistakes. In tasks where the system expects a very specific answer structure, this can improve reliability even if it does not directly improve the underlying reasoning itself.
 ### Q2.3
-#### a) {1: 0.036253115107429124, 2: 0.04065355515143354, 3: 0.03240273006892528, 4: 0.019201409936912068}
-#### b) The step with the highest Shapley value is Step 2, followed by Step 1, then 3, then 4. Step 2 involves translating the natural-language word problem into logical formulas, which is likely the most valuable part of the whole method. This is because it turns the question from a free-text reasoning problem into a more structured and therefore more solvable form. Instead of spending as much effort interpreting wording, context, and hidden relations in the text, the model can work with a clearer formal representation. That likely makes the reasoning process more reliable, which would explain why Step 2 has the highest Shapley value.
-#### c) Ordering the steps by their Shapley values gives: Step 2 > Step 1 > Step 3 > Step 4. This ordering is largely unsurprising. As discussed earlier, Step 2 is the stage that converts the free-text problem into logical or mathematical formulas, so it makes sense that it has the highest contribution. This step removes much of the ambiguity of natural language and turns the problem into a more structured form that is easier to reason over.
+#### a) 
+{1: 0.036253115107429124, 2: 0.04065355515143354, 3: 0.03240273006892528, 4: 0.019201409936912068}
+#### b) 
+The step with the highest Shapley value is Step 2, followed by Step 1, then 3, then 4. Step 2 involves translating the natural-language word problem into logical formulas, which is likely the most valuable part of the whole method. This is because it turns the question from a free-text reasoning problem into a more structured and therefore more solvable form. Instead of spending as much effort interpreting wording, context, and hidden relations in the text, the model can work with a clearer formal representation. That likely makes the reasoning process more reliable, which would explain why Step 2 has the highest Shapley value.
+#### c) 
+Ordering the steps by their Shapley values gives: Step 2 > Step 1 > Step 3 > Step 4. This ordering is largely unsurprising. As discussed earlier, Step 2 is the stage that converts the free-text problem into logical or mathematical formulas, so it makes sense that it has the highest contribution. This step removes much of the ambiguity of natural language and turns the problem into a more structured form that is easier to reason over.
 
 It also makes sense that Step 1 has the second-highest Shapley value. Step 1 extracts the relevant variables, entities, and pieces of information from the free text, which already reduces ambiguity significantly. The fact that Step 2 is still ranked above Step 1 suggests that, while the model is already fairly capable of identifying relevant information from natural language, the larger gain comes from explicitly structuring that information into formal relations.
 
@@ -136,10 +143,16 @@ _lose_ of previously trained and learned aspects.
 | Run | Overall Acc | Valid Acc | Invalid Acc |
 | --- | ------ | ----- | ----- |
 | 1   | 28.00% | 28.00% | 0.00% |
-| 2   | 31.00% Valid: 31.00%; Invalid: 0.00% | 33.00% Valid: 33.00%; Invalid: 0.00% |
-| 3   | 31.00% Valid: 31.00%; Invalid: 0.00% | 32.00% Valid: 32.00%; Invalid: 0.00%|
-| Mean| 31.00% | 33.00% |
+'the answer is' count: 78(sft), 86(grpo)
+
+The accuracy after training with GRPO is 28.00% overall, 28.00% valid accuracy and 0.00% invalid accuracy; The accuracy for SFT is 35.00% overall, 35.00% valid accuracy and 0.00& invalid accuracy. By counting the appearance of "the answer is" in the generated answers, there are 78 answers with the correct format in the SFT model, while 86 in the GRPO model, so the frequency of the phrase "the answer is" does increase. From the observing the results produced by SFT model and GRPO model, we spot the following differences:
+1. The GRPO model generally produce longer answers than the SFT model. These longer answer did not guarantee a better accuracy, in certain questions we find the GRPO model over complicating the question. The model stated every step with lots of verbal explanation, but certain explaination are meaningless and verbose, for example: Since Raymond was born 25 years ago, he was born 25 years ago; these explainations did not contribute to reasoning.
+2. The GRPO model seems to be overfitting to the format reward. There appears to be formats like: Therefore, the answer is: the answer is 17. This will cause evaluation to flag the answer as incorrect no matter what the answer in side the nested phrase is.
+3. A new format of: "the answer is [number]", "the answer is \[\boxed{number}\]" and "the answer is \boxed{number}" appeared, which is some unexplainable phenonmenon only appears in the GRPO model.
 ### Q4.3
+This phenonmenon is called Specification gaming, which means when a literal specification is satisfied in an unintended way, that contribute less to the goal of the specification. This phenonmenon was descibed by Google DeepMind (https://deepmind.google/blog/specification-gaming-the-flip-side-of-ai-ingenuity/) as: a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. However, there are also paper stated a phenonmenon called Shortcut learning (https://arxiv.org/pdf/2004.07780), the paper define it as: decision
+rules that perform well on standard benchmarks but fail to transfer to more challenging
+testing conditions, such as real-world scenarios. With consider to our reward functions, this seems inappropriate with our model, since the model has not yet solve our problem, but play around the specification to achieve better rewards. The reward function for our GPRO model has set 0.5 reward to correct format and 2.0 reward to correct answer. That means the model can get 0.5 reward simply by adding "the answer is" at the end of the answer, while to get the correct answer involve long correct reasoning steps, small changes in the reasoning steps can pivot answers alot. Compared to answering correctly, correct formating is a much cheaper and easier way to get reward for the model.
 ## Question 5
 ### Q5.1
 #### Proposed Method: Self-Consistency Decoding at Evaluation Time
@@ -153,4 +166,24 @@ The motivation for this method is that mathematical reasoning often admits sever
 In addition to the main change, a minor supporting adjustment may be made to the answer extraction procedure. The current fallback behaviour, which extracts the final number appearing anywhere in the output, is overly permissive and may incorrectly treat malformed generations as valid answers. Tightening this extraction logic would make the evaluation more reliable and better aligned with the output format encouraged during fine-tuning. However, this would remain a secondary change, while the main contribution of the proposed method is the use of self-consistency decoding itself.
 
 A limitation of this approach is that it does not improve the model’s underlying mathematical ability through training. Instead, it improves the robustness of inference by reducing dependence on a single sampled reasoning trace. It also increases evaluation cost, since each question must be generated multiple times. Nevertheless, this trade-off is reasonable in the present setting, as the GSM8K test subset is small and the goal of this section is to propose a meaningful and well-motivated improvement to the pipeline rather than a computationally minimal one.
+
+Another improvement is to separate the reward score for correct answer + correct format with correct answer + incorrect format. We propose that by setting the reward for correct answer + correct format to 2.5, while reward 2.0 for correct answer + wrong format. This is to encourage the model to learn for higher reward, reduce shortcuts, thus improve the performance. Meanwhile, we set the reward for format correctness to 1.0 to shorten the gap between the two rewards. This is due to an observation in the evaluation results which contains a large number of bracketed answer and nested answer. 
 ### Q5.2
+
+From Q5.1 we have 2 hypothesis:\
+Hypothesis 1: Whether the proposed multi-results, vote based evaluation process is better to report the true performance in reasoning ability.\
+Hypothesis 2: Whether the propased three-senario reward mechanism improve the performance.
+
+The experiments are:
+1. Newly trained GRPO model with new three-senario reward mechanism, evalated on unmodified evaluation pipeline.
+2. Pretrained GRPO model from Q4, evaluated on new evaluation pipeline.
+3. Newly trained GRPO model with new three-senario reward mechanism, evaluated on new evaluation pipeline.
+4. Pretrained STF model from Q3, evaluated on new evaluation pipeline.
+
+Results:\
+Experiment 1: overall accuracy: 26.00%; valid accuracy: 26.00%; invalid accuracy 0.00%.\
+Experiment 2: overall accuracy: 49.00%; valid accuracy: 52.69%; invalid accuracy 7.00%.\
+Experiment 3: overall accuracy: 35.00%; valid accuracy: 39.77%; invalid accuracy 12.00%.\
+Experiment 4: overall accuracy: 46.00%; valid accuracy: 48.42%; invalid accuracy 5.00%.
+
+The results suggests no enough evidence to reject hypothesis 1, and enough evidence to reject hypothesis 2. This suggest that the improvement of GRPO in reasoning capacity was not shown by the old evaluation pipeline, with the GRPO model reported 49.00% accuracy while the STF model reported 46.00% on the new evaluation pipeline. However, it is shown that the new reward mechanism did not contribute to the performance, with new trained GRPO model scored low in both old and new evaluation pipeline. Therefore, we can conclude, under the current circumstances with only 2 epoch of training, the format learning for the model is not likely to improve majorly. The improvement of correctness on the GRPO model over the SFT model is not significant.
